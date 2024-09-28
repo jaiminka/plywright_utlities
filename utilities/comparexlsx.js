@@ -1,6 +1,6 @@
 const Excel = require('exceljs')
 
-export const comapreExcel = async (expectedPath, actualPath) => {
+export const comapreExcel = async (expectedPath, actualPath, config = {}) => {
     const expectedWb = new Excel.Workbook();
     const actualWb = new Excel.Workbook();
 
@@ -8,7 +8,7 @@ export const comapreExcel = async (expectedPath, actualPath) => {
 
     try {
         compareSheetName(expectedWb, actualWb);
-        compareSheetData(expectedWb, actualWb);
+        compareSheetData(expectedWb, actualWb, config);
 
     } catch (e) {
         throw e;
@@ -39,7 +39,7 @@ const compareSheetName = (expectedWb, actualWb) => {
     }
 }
 
-const compareSheetData = (expectedWb, actualWb) => {
+const compareSheetData = (expectedWb, actualWb, config) => {
 
     try {
         const sheetsName = getSheetName(expectedWb);
@@ -51,12 +51,21 @@ const compareSheetData = (expectedWb, actualWb) => {
             for (let row = 1; row <= rowCount; row++) {
                 for (let column = 1; column <= columnCount; column++) {
                     const columnName = (column + 9).toString(36).toUpperCase();
-                    const expCellValue = expectedWb.getWorksheet(sheetsName[name]).getCell(`${columnName}${row}`).value
-                    const actCellValue = actualWb.getWorksheet(sheetsName[name]).getCell(`${columnName}${row}`).value
-                    if (expCellValue !== actCellValue) throw Error(`in ${columnName}${row} cellValue missmatch found :expected ${expCellValue} but found ${actCellValue}`)
+                    const expectedCell = expectedWb.getWorksheet(sheetsName[name]).getCell(`${columnName}${row}`)
+                    const actualCell = actualWb.getWorksheet(sheetsName[name]).getCell(`${columnName}${row}`)
 
+                    const expCellValue = expectedCell.value
+                    const actCellValue = actualCell.value
+                    if (expCellValue !== actCellValue) throw Error(`in ${columnName}${row} cellValue missmatch found :expected ${expCellValue} but found ${actCellValue}`)
+                    // if (!process.env.ignoreBgColor) {
+                    if (!config.ignoreBgColor) {
+                        const expectedCellColor = expectedCell.style.fill?.fgColor?.argb
+                        const actualCellColor = actualCell.style.fill?.fgColor?.argb
+                        if (expectedCellColor !== actualCellColor) throw Error(`in ${columnName}${row} bgColor missmatch found :expected ${expectedCellColor} but found ${actualCellColor}`)
+                    }
                 }
             }
+
         }
     }
     catch (e) {

@@ -10,7 +10,7 @@ test('has title', async ({ page }) => {
 
   // const excel = fs.realpathSync(path, { encoding: 'utf8' });
 
-  comapreExcel(expectedPath, actualPath);
+  comapreExcel(expectedPath, actualPath, { ignoreBgColor: true });
   // const wb = new Excel.Workbook();
   // await Promise.all([wb.xlsx.readFile(path)])
 
